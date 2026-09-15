@@ -2,269 +2,208 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dominó Dominicano</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APUNTE-MÁGICO - Dominó Dominicano</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f4f9; color: #333; display: flex; flex-direction: column; min-height: 100vh; align-items: center; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f0f2f5; color: #333; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+    .container { max-width: 500px; width: 100%; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #1a2a3a; font-size: 22px; margin-bottom: 15px; }
+    .scoreboard { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+    .team-card { flex: 1; background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #e9ecef; }
+    .team-title { font-size: 18px; font-weight: bold; color: #1a2a3a; cursor: pointer; }
+    .score { font-size: 42px; font-weight: bold; margin: 10px 0; }
+    .nosotros .score { color: #0d3b66; }
+    .ellos .score { color: #c0392b; }
+    .bonuses { font-size: 12px; color: #6c757d; text-align: left; background: #fff; padding: 8px; border-radius: 6px; }
+    .btn-group { display: flex; flex-direction: column; gap: 8px; }
+    .row { display: flex; gap: 8px; }
+    button { flex: 1; padding: 12px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    .btn-edit { background: #0096c7; color: white; }
+    .btn-add-nos { background: #0d3b66; color: white; }
+    .btn-add-ell { background: #c0392b; color: white; }
+    .btn-bonus { background: #2a9d8f; color: white; }
+    .btn-cam { background: #6a0dad; color: white; }
+    .btn-reset { background: #6c757d; color: white; }
     
-    /* Encabezado Dominicano */
-    header { background: linear-gradient(135deg, #002D62, #CE1126); color: white; width: 100%; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    header h1 { font-size: 1.5rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    /* Modales */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+    .modal-content input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
     
-    /* Imagen del mapa */
-    .mapa-container { width: 100%; max-width: 400px; padding: 10px; text-align: center; }
-    .mapa-container img { width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
-
-    /* Marcador Principal y Desglose */
-    .score-board { display: flex; width: 95%; max-width: 400px; margin: 10px 0; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .team { flex: 1; padding: 15px; text-align: center; cursor: pointer; }
-    .team-nosotros { border-right: 2px solid #f0f0f0; background-color: #f8faff; }
-    .team-ellos { background-color: #fff8f8; }
-    .team h2 { font-size: 1.1rem; color: #555; margin-bottom: 5px; text-transform: uppercase; word-break: break-word; }
-    .team span.edit-hint { font-size: 0.7rem; color: #888; display: block; font-weight: normal; margin-top: -2px; }
-    .score { font-size: 2.8rem; font-weight: bold; margin: 5px 0; }
-    .team-nosotros .score { color: #002D62; }
-    .team-ellos .score { color: #CE1126; }
-
-    /* Resumen de Bonificaciones */
-    .bonus-summary { font-size: 0.75rem; color: #666; margin-top: 8px; text-align: left; background: rgba(0,0,0,0.03); padding: 6px; border-radius: 5px; }
-    .bonus-summary div { margin-bottom: 2px; }
-
-    /* Panel de Control */
-    .controls { width: 95%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-    .btn-group { display: flex; gap: 8px; }
-    button { flex: 1; padding: 10px; font-size: 0.85rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
-    button:active { transform: scale(0.98); }
-    
-    .btn-blue { background-color: #002D62; color: white; }
-    .btn-red { background-color: #CE1126; color: white; }
-    .btn-bonus { background-color: #28a745; color: white; }
-    .btn-camera { background-color: #6f42c1; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-reset { background-color: #6c757d; color: white; margin-top: 5px; }
-    .btn-names { background-color: #17a2b8; color: white; }
-
-    /* Visor de Cámara y Modal */
-    #camera-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-    #video { width: 90%; max-width: 400px; border-radius: 8px; background: #000; }
-    .modal-btns { margin-top: 15px; display: flex; gap: 10px; }
-
-    /* Historial */
-    .history { width: 95%; max-width: 400px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .history h3 { font-size: 1rem; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-    .history-list { list-style: none; max-height: 150px; overflow-y: auto; font-size: 0.85rem; }
-    .history-list li { padding: 4px 0; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
+    /* Teclado rápido de puntos */
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+    .keypad button { background: #e9ecef; color: #333; font-size: 20px; padding: 15px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Dominó Dominicano</h1>
-  </header>
-
-  <div class="mapa-container">
-    <img src="mapa.png" alt="Mapa República Dominicana" onerror="this.style.display='none'">
-  </div>
-
-  <div class="score-board">
-    <!-- Equipo 1 -->
-    <div class="team team-nosotros" onclick="cambiarNombre('nosotros')">
-      <h2 id="name-nosotros">NOSOTROS</h2>
-      <span class="edit-hint">✏️ Toca para cambiar</span>
-      <div id="score-nosotros" class="score">0</div>
-      <div class="bonus-summary">
-        <div>Capicúa: <strong id="capicua-nosotros">0</strong></div>
-        <div>Paso Igual: <strong id="paso-nosotros">0</strong></div>
-        <div>Paso Corrido: <strong id="corrido-nosotros">0</strong></div>
+<div class="container">
+  <h1>Dominó Dominicano</h1>
+  
+  <div class="scoreboard">
+    <div class="team-card nosotros">
+      <div class="team-title" id="nameNosotros" onclick="cambiarNombres()">NOSOTROS</div>
+      <div class="score" id="scoreNosotros">0</div>
+      <div class="bonuses">
+        Capicúa: <span id="capNos">0</span><br>
+        Paso Igual: <span id="pIgualNos">0</span><br>
+        Paso Corrido: <span id="pCorrNos">0</span>
       </div>
     </div>
-
-    <!-- Equipo 2 -->
-    <div class="team team-ellos" onclick="cambiarNombre('ellos')">
-      <h2 id="name-ellos">ELLOS</h2>
-      <span class="edit-hint">✏️ Toca para cambiar</span>
-      <div id="score-ellos" class="score">0</div>
-      <div class="bonus-summary">
-        <div>Capicúa: <strong id="capicua-ellos">0</strong></div>
-        <div>Paso Igual: <strong id="paso-ellos">0</strong></div>
-        <div>Paso Corrido: <strong id="corrido-ellos">0</strong></div>
+    <div class="team-card ellos">
+      <div class="team-title" id="nameEllos" onclick="cambiarNombres()">ELLOS</div>
+      <div class="score" id="scoreEllos">0</div>
+      <div class="bonuses">
+        Capicúa: <span id="capEll">0</span><br>
+        Paso Igual: <span id="pIgualEll">0</span><br>
+        Paso Corrido: <span id="pCorrEll">0</span>
       </div>
     </div>
   </div>
 
-  <div class="controls">
-    <!-- Cambiar Nombres -->
-    <button class="btn-names" onclick="cambiarAmbosNombres()">✏️ Cambiar Nombres de Jugadores</button>
-
-    <!-- Puntos Manuales -->
-    <div class="btn-group">
-      <button class="btn-blue" id="btn-pts-nosotros" onclick="sumarPuntos('nosotros')">+ Pts NOSOTROS</button>
-      <button class="btn-red" id="btn-pts-ellos" onclick="sumarPuntos('ellos')">+ Pts ELLOS</button>
+  <div class="btn-group">
+    <button class="btn-edit" onclick="cambiarNombres()">✏️ Cambiar Nombres de Jugadores</button>
+    
+    <div class="row">
+      <button class="btn-add-nos" onclick="abrirPuntos('nosotros')">+ Pts NOSOTROS</button>
+      <button class="btn-add-ell" onclick="abrirPuntos('ellos')">+ Pts ELLOS</button>
     </div>
 
-    <!-- Capicúa (30 pts) -->
-    <div class="btn-group">
-      <button class="btn-bonus" id="btn-cap-nosotros" onclick="sumarBonus('nosotros', 'capicua')">+ Capicúa Nos. (30)</button>
-      <button class="btn-bonus" id="btn-cap-ellos" onclick="sumarBonus('ellos', 'capicua')">+ Capicúa Ell. (30)</button>
+    <div class="row">
+      <button class="btn-bonus" onclick="sumarBonus('nosotros', 'capicua')">+ Capicúa Nos. (30)</button>
+      <button class="btn-bonus" onclick="sumarBonus('ellos', 'capicua')">+ Capicúa Ell. (30)</button>
+    </div>
+    
+    <div class="row">
+      <button class="btn-bonus" onclick="sumarBonus('nosotros', 'pasoIgual')">+ Paso Igual Nos. (30)</button>
+      <button class="btn-bonus" onclick="sumarBonus('ellos', 'pasoIgual')">+ Paso Igual Ell. (30)</button>
     </div>
 
-    <!-- Paso Igual (30 pts) -->
-    <div class="btn-group">
-      <button class="btn-bonus" id="btn-pas-nosotros" onclick="sumarBonus('nosotros', 'paso')">+ Paso Igual Nos. (30)</button>
-      <button class="btn-bonus" id="btn-pas-ellos" onclick="sumarBonus('ellos', 'paso')">+ Paso Igual Ell. (30)</button>
+    <div class="row">
+      <button class="btn-bonus" onclick="sumarBonus('nosotros', 'pasoCorrido')">+ Paso Corrido Nos. (30)</button>
+      <button class="btn-bonus" onclick="sumarBonus('ellos', 'pasoCorrido')">+ Paso Corrido Ell. (30)</button>
     </div>
 
-    <!-- Paso Corrido (30 pts) -->
-    <div class="btn-group">
-      <button class="btn-bonus" id="btn-cor-nosotros" onclick="sumarBonus('nosotros', 'corrido')">+ Paso Corrido Nos. (30)</button>
-      <button class="btn-bonus" id="btn-cor-ellos" onclick="sumarBonus('ellos', 'corrido')">+ Paso Corrido Ell. (30)</button>
-    </div>
-
-    <!-- Visor de Cámara -->
-    <button class="btn-camera" onclick="abrirCamara()">📷 Contar con Cámara</button>
-
-    <!-- Reiniciar -->
-    <button class="btn-reset" onclick="reiniciarJuego()">Reiniciar Partida</button>
+    <button class="btn-cam" onclick="abrirCamaraPuntos()">📷 Contar con Cámara</button>
+    <button class="btn-reset" onclick="reiniciarPartida()">Reiniciar Partida</button>
   </div>
+</div>
 
-  <div class="history">
-    <h3>Historial Detallado</h3>
-    <ul id="history-list" class="history-list"></ul>
-  </div>
+<!-- Input invisible para la cámara -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="fotoTomada()">
 
-  <!-- Modal de Cámara -->
-  <div id="camera-modal">
-    <video id="video" autoplay playsinline></video>
-    <div class="modal-btns">
-      <button class="btn-blue" id="btn-cam-nosotros" onclick="capturarYContar('nosotros')">Anotar a NOSOTROS</button>
-      <button class="btn-red" id="btn-cam-ellos" onclick="capturarYContar('ellos')">Anotar a ELLOS</button>
-      <button class="btn-reset" onclick="cerrarCamara()">Cerrar</button>
+<!-- Modal Puntos -->
+<div class="modal" id="modalPuntos">
+  <div class="modal-content">
+    <h3 id="modalPuntosTitulo">Sumar Puntos</h3>
+    <input type="number" id="puntosInput" placeholder="Puntos" readonly>
+    <div class="keypad">
+      <button onclick="pressKey('1')">1</button>
+      <button onclick="pressKey('2')">2</button>
+      <button onclick="pressKey('3')">3</button>
+      <button onclick="pressKey('4')">4</button>
+      <button onclick="pressKey('5')">5</button>
+      <button onclick="pressKey('6')">6</button>
+      <button onclick="pressKey('7')">7</button>
+      <button onclick="pressKey('8')">8</button>
+      <button onclick="pressKey('9')">9</button>
+      <button onclick="clearKey()">C</button>
+      <button onclick="pressKey('0')">0</button>
+      <button onclick="confirmarPuntos()">OK</button>
     </div>
+    <button class="btn-reset" onclick="cerrarModal('modalPuntos')">Cancelar</button>
   </div>
+</div>
 
-  <script>
-    let nombres = { nosotros: "NOSOTROS", ellos: "ELLOS" };
-    let puntos = { nosotros: 0, ellos: 0 };
-    let bonus = {
-      nosotros: { capicua: 0, paso: 0, corrido: 0 },
-      ellos: { capicua: 0, paso: 0, corrido: 0 }
-    };
-    let streamCamara = null;
+<script>
+  let state = {
+    nosotros: 0, ellos: 0,
+    capNos: 0, pIgualNos: 0, pCorrNos: 0,
+    capEll: 0, pIgualEll: 0, pCorrEll: 0,
+    equipoActual: 'nosotros'
+  };
 
-    function cambiarNombre(equipo) {
-      const nuevoNombre = prompt(`Introduce el nombre o pareja para ${nombres[equipo]}:`, nombres[equipo]);
-      if (nuevoNombre && nuevoNombre.trim() !== "") {
-        nombres[equipo] = nuevoNombre.trim();
-        actualizarPantalla();
-      }
+  function updateUI() {
+    document.getElementById('scoreNosotros').innerText = state.nosotros;
+    document.getElementById('scoreEllos').innerText = state.ellos;
+    document.getElementById('capNos').innerText = state.capNos;
+    document.getElementById('pIgualNos').innerText = state.pIgualNos;
+    document.getElementById('pCorrNos').innerText = state.pCorrNos;
+    document.getElementById('capEll').innerText = state.capEll;
+    document.getElementById('pIgualEll').innerText = state.pIgualEll;
+    document.getElementById('pCorrEll').innerText = state.pCorrEll;
+  }
+
+  function cambiarNombres() {
+    const n1 = prompt("Nombre Pareja 1:", document.getElementById('nameNosotros').innerText);
+    const n2 = prompt("Nombre Pareja 2:", document.getElementById('nameEllos').innerText);
+    if(n1) document.getElementById('nameNosotros').innerText = n1.toUpperCase();
+    if(n2) document.getElementById('nameEllos').innerText = n2.toUpperCase();
+  }
+
+  function sumarBonus(equipo, tipo) {
+    if(equipo === 'nosotros') {
+      if(tipo === 'capicua') state.capNos++;
+      if(tipo === 'pasoIgual') state.pIgualNos++;
+      if(tipo === 'pasoCorrido') state.pCorrNos++;
+      state.nosotros += 30;
+    } else {
+      if(tipo === 'capicua') state.capEll++;
+      if(tipo === 'pasoIgual') state.pIgualEll++;
+      if(tipo === 'pasoCorrido') state.pCorrEll++;
+      state.ellos += 30;
     }
+    updateUI();
+  }
 
-    function cambiarAmbosNombres() {
-      cambiarNombre('nosotros');
-      cambiarNombre('ellos');
+  function abrirPuntos(equipo) {
+    state.equipoActual = equipo;
+    document.getElementById('modalPuntosTitulo').innerText = "Puntos para " + (equipo === 'nosotros' ? document.getElementById('nameNosotros').innerText : document.getElementById('nameEllos').innerText);
+    document.getElementById('puntosInput').value = '';
+    document.getElementById('modalPuntos').style.display = 'flex';
+  }
+
+  function abrirCamaraPuntos() {
+    document.getElementById('cameraInput').click();
+  }
+
+  function fotoTomada() {
+    // Tras tomar la foto de las fichas, abrimos directamente el teclado numérico rápido
+    abrirPuntos('nosotros');
+  }
+
+  function pressKey(val) {
+    document.getElementById('puntosInput').value += val;
+  }
+
+  function clearKey() {
+    document.getElementById('puntosInput').value = '';
+  }
+
+  function confirmarPuntos() {
+    const pts = parseInt(document.getElementById('puntosInput').value) || 0;
+    if(state.equipoActual === 'nosotros') state.nosotros += pts;
+    else state.ellos += pts;
+    updateUI();
+    cerrarModal('modalPuntos');
+  }
+
+  function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function reiniciarPartida() {
+    if(confirm("¿Reiniciar el marcador a 0?")) {
+      state = { nosotros: 0, ellos: 0, capNos: 0, pIgualNos: 0, pCorrNos: 0, capEll: 0, pIgualEll: 0, pCorrEll: 0, equipoActual: 'nosotros' };
+      updateUI();
     }
+  }
 
-    function actualizarPantalla() {
-      document.getElementById('name-nosotros').innerText = nombres.nosotros;
-      document.getElementById('name-ellos').innerText = nombres.ellos;
-
-      document.getElementById('btn-pts-nosotros').innerText = `+ Pts ${nombres.nosotros}`;
-      document.getElementById('btn-pts-ellos').innerText = `+ Pts ${nombres.ellos}`;
-
-      document.getElementById('btn-cap-nosotros').innerText = `+ Capicúa ${nombres.nosotros} (30)`;
-      document.getElementById('btn-cap-ellos').innerText = `+ Capicúa ${nombres.ellos} (30)`;
-
-      document.getElementById('btn-pas-nosotros').innerText = `+ Paso Igual ${nombres.nosotros} (30)`;
-      document.getElementById('btn-pas-ellos').innerText = `+ Paso Igual ${nombres.ellos} (30)`;
-
-      document.getElementById('btn-cor-nosotros').innerText = `+ Paso Corrido ${nombres.nosotros} (30)`;
-      document.getElementById('btn-cor-ellos').innerText = `+ Paso Corrido ${nombres.ellos} (30)`;
-
-      document.getElementById('btn-cam-nosotros').innerText = `Anotar a ${nombres.nosotros}`;
-      document.getElementById('btn-cam-ellos').innerText = `Anotar a ${nombres.ellos}`;
-
-      document.getElementById('score-nosotros').innerText = puntos.nosotros;
-      document.getElementById('score-ellos').innerText = puntos.ellos;
-
-      document.getElementById('capicua-nosotros').innerText = bonus.nosotros.capicua;
-      document.getElementById('paso-nosotros').innerText = bonus.nosotros.paso;
-      document.getElementById('corrido-nosotros').innerText = bonus.nosotros.corrido;
-
-      document.getElementById('capicua-ellos').innerText = bonus.ellos.capicua;
-      document.getElementById('paso-ellos').innerText = bonus.ellos.paso;
-      document.getElementById('corrido-ellos').innerText = bonus.ellos.corrido;
-    }
-
-    function agregarHistorial(texto) {
-      const lista = document.getElementById('history-list');
-      const li = document.createElement('li');
-      li.innerText = texto;
-      lista.insertBefore(li, lista.firstChild);
-    }
-
-    function sumarPuntos(equipo) {
-      const entrada = prompt(`Ingrese los puntos a sumar para ${nombres[equipo]}:`);
-      const val = parseInt(entrada);
-      if (!isNaN(val) && val > 0) {
-        puntos[equipo] += val;
-        agregarHistorial(`+${val} pts manuales para ${nombres[equipo]}`);
-        actualizarPantalla();
-      }
-    }
-
-    function sumarBonus(equipo, tipo) {
-      puntos[equipo] += 30;
-      bonus[equipo][tipo]++;
-      
-      let nombreBonus = tipo === 'capicua' ? 'Capicúa' : (tipo === 'paso' ? 'Paso Igual' : 'Paso Corrido');
-      agregarHistorial(`+30 pts (${nombreBonus}) para ${nombres[equipo]}`);
-      actualizarPantalla();
-    }
-
-    async function abrirCamara() {
-      const modal = document.getElementById('camera-modal');
-      const video = document.getElementById('video');
-      try {
-        streamCamara = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        video.srcObject = streamCamara;
-        modal.style.display = 'flex';
-      } catch (err) {
-        alert('No se pudo acceder a la cámara: ' + err.message);
-      }
-    }
-
-    function cerrarCamara() {
-      if (streamCamara) {
-        streamCamara.getTracks().forEach(track => track.stop());
-      }
-      document.getElementById('camera-modal').style.display = 'none';
-    }
-
-    function capturarYContar(equipo) {
-      cerrarCamara();
-      setTimeout(() => {
-        const entrada = prompt(`Revisa la mesa. ¿Cuántos puntos contó para ${nombres[equipo]}?:`);
-        const val = parseInt(entrada);
-        if (!isNaN(val) && val > 0) {
-          puntos[equipo] += val;
-          agregarHistorial(`+${val} pts (Cámara) para ${nombres[equipo]}`);
-          actualizarPantalla();
-        }
-      }, 300);
-    }
-
-    function reiniciarJuego() {
-      if (confirm('¿Seguro que deseas reiniciar la partida?')) {
-        puntos = { nosotros: 0, ellos: 0 };
-        bonus = {
-          nosotros: { capicua: 0, paso: 0, corrido: 0 },
-          ellos: { capicua: 0, paso: 0, corrido: 0 }
-        };
-        document.getElementById('history-list').innerHTML = '';
-        actualizarPantalla();
-      }
-    }
-  </script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+</script>
 </body>
 </html>
