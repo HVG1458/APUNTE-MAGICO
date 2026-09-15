@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dominó Dominicano</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f4f9; color: #333; display: flex; flex-direction: column; min-height: 100vh; align-items: center; }
+    
+    /* Encabezado Dominicano */
+    header { background: linear-gradient(135deg, #002D62, #CE1126); color: white; width: 100%; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    header h1 { font-size: 1.5rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    
+    /* Imagen del mapa */
+    .mapa-container { width: 100%; max-width: 400px; padding: 10px; text-align: center; }
+    .mapa-container img { width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+
+    /* Marcador Principal y Desglose */
+    .score-board { display: flex; width: 95%; max-width: 400px; margin: 10px 0; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .team { flex: 1; padding: 15px; text-align: center; cursor: pointer; }
+    .team-nosotros { border-right: 2px solid #f0f0f0; background-color: #f8faff; }
+    .team-ellos { background-color: #fff8f8; }
+    .team h2 { font-size: 1.1rem; color: #555; margin-bottom: 5px; text-transform: uppercase; word-break: break-word; }
+    .team span.edit-hint { font-size: 0.7rem; color: #888; display: block; font-weight: normal; margin-top: -2px; }
+    .score { font-size: 2.8rem; font-weight: bold; margin: 5px 0; }
+    .team-nosotros .score { color: #002D62; }
+    .team-ellos .score { color: #CE1126; }
+
+    /* Resumen de Bonificaciones */
+    .bonus-summary { font-size: 0.75rem; color: #666; margin-top: 8px; text-align: left; background: rgba(0,0,0,0.03); padding: 6px; border-radius: 5px; }
+    .bonus-summary div { margin-bottom: 2px; }
+
+    /* Panel de Control */
+    .controls { width: 95%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .btn-group { display: flex; gap: 8px; }
+    button { flex: 1; padding: 10px; font-size: 0.85rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+    button:active { transform: scale(0.98); }
+    
+    .btn-blue { background-color: #002D62; color: white; }
+    .btn-red { background-color: #CE1126; color: white; }
+    .btn-bonus { background-color: #28a745; color: white; }
+    .btn-camera { background-color: #6f42c1; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-reset { background-color: #6c757d; color: white; margin-top: 5px; }
+    .btn-names { background-color: #17a2b8; color: white; }
+
+    /* Visor de Cámara y Modal */
+    #camera-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+    #video { width: 90%; max-width: 400px; border-radius: 8px; background: #000; }
+    .modal-btns { margin-top: 15px; display: flex; gap: 10px; }
+
+    /* Historial */
+    .history { width: 95%; max-width: 400px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .history h3 { font-size: 1rem; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    .history-list { list-style: none; max-height: 150px; overflow-y: auto; font-size: 0.85rem; }
+    .history-list li { padding: 4px 0; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Dominó Dominicano</h1>
+  </header>
+
+  <div class="mapa-container">
+    <img src="mapa.png" alt="Mapa República Dominicana" onerror="this.style.display='none'">
+  </div>
+
+  <div class="score-board">
+    <!-- Equipo 1 -->
+    <div class="team team-nosotros" onclick="cambiarNombre('nosotros')">
+      <h2 id="name-nosotros">NOSOTROS</h2>
+      <span class="edit-hint">✏️ Toca para cambiar</span>
+      <div id="score-nosotros" class="score">0</div>
+      <div class="bonus-summary">
+        <div>Capicúa: <strong id="capicua-nosotros">0</strong></div>
+        <div>Paso Igual: <strong id="paso-nosotros">0</strong></div>
+        <div>Paso Corrido: <strong id="corrido-nosotros">0</strong></div>
+      </div>
+    </div>
+
+    <!-- Equipo 2 -->
+    <div class="team team-ellos" onclick="cambiarNombre('ellos')">
+      <h2 id="name-ellos">ELLOS</h2>
+      <span class="edit-hint">✏️ Toca para cambiar</span>
+      <div id="score-ellos" class="score">0</div>
+      <div class="bonus-summary">
+        <div>Capicúa: <strong id="capicua-ellos">0</strong></div>
+        <div>Paso Igual: <strong id="paso-ellos">0</strong></div>
+        <div>Paso Corrido: <strong id="corrido-ellos">0</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <!-- Cambiar Nombres -->
+    <button class="btn-names" onclick="cambiarAmbosNombres()">✏️ Cambiar Nombres de Jugadores</button>
+
+    <!-- Puntos Manuales -->
+    <div class="btn-group">
+      <button class="btn-blue" id="btn-pts-nosotros" onclick="sumarPuntos('nosotros')">+ Pts NOSOTROS</button>
+      <button class="btn-red" id="btn-pts-ellos" onclick="sumarPuntos('ellos')">+ Pts ELLOS</button>
+    </div>
+
+    <!-- Capicúa (30 pts) -->
+    <div class="btn-group">
+      <button class="btn-bonus" id="btn-cap-nosotros" onclick="sumarBonus('nosotros', 'capicua')">+ Capicúa Nos. (30)</button>
+      <button class="btn-bonus" id="btn-cap-ellos" onclick="sumarBonus('ellos', 'capicua')">+ Capicúa Ell. (30)</button>
+    </div>
+
+    <!-- Paso Igual (30 pts) -->
+    <div class="btn-group">
+      <button class="btn-bonus" id="btn-pas-nosotros" onclick="sumarBonus('nosotros', 'paso')">+ Paso Igual Nos. (30)</button>
+      <button class="btn-bonus" id="btn-pas-ellos" onclick="sumarBonus('ellos', 'paso')">+ Paso Igual Ell. (30)</button>
+    </div>
+
+    <!-- Paso Corrido (30 pts) -->
+    <div class="btn-group">
+      <button class="btn-bonus" id="btn-cor-nosotros" onclick="sumarBonus('nosotros', 'corrido')">+ Paso Corrido Nos. (30)</button>
+      <button class="btn-bonus" id="btn-cor-ellos" onclick="sumarBonus('ellos', 'corrido')">+ Paso Corrido Ell. (30)</button>
+    </div>
+
+    <!-- Visor de Cámara -->
+    <button class="btn-camera" onclick="abrirCamara()">📷 Contar con Cámara</button>
+
+    <!-- Reiniciar -->
+    <button class="btn-reset" onclick="reiniciarJuego()">Reiniciar Partida</button>
+  </div>
+
+  <div class="history">
+    <h3>Historial Detallado</h3>
+    <ul id="history-list" class="history-list"></ul>
+  </div>
+
+  <!-- Modal de Cámara -->
+  <div id="camera-modal">
+    <video id="video" autoplay playsinline></video>
+    <div class="modal-btns">
+      <button class="btn-blue" id="btn-cam-nosotros" onclick="capturarYContar('nosotros')">Anotar a NOSOTROS</button>
+      <button class="btn-red" id="btn-cam-ellos" onclick="capturarYContar('ellos')">Anotar a ELLOS</button>
+      <button class="btn-reset" onclick="cerrarCamara()">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    let nombres = { nosotros: "NOSOTROS", ellos: "ELLOS" };
+    let puntos = { nosotros: 0, ellos: 0 };
+    let bonus = {
+      nosotros: { capicua: 0, paso: 0, corrido: 0 },
+      ellos: { capicua: 0, paso: 0, corrido: 0 }
+    };
+    let streamCamara = null;
+
+    function cambiarNombre(equipo) {
+      const nuevoNombre = prompt(`Introduce el nombre o pareja para ${nombres[equipo]}:`, nombres[equipo]);
+      if (nuevoNombre && nuevoNombre.trim() !== "") {
+        nombres[equipo] = nuevoNombre.trim();
+        actualizarPantalla();
+      }
+    }
+
+    function cambiarAmbosNombres() {
+      cambiarNombre('nosotros');
+      cambiarNombre('ellos');
+    }
+
+    function actualizarPantalla() {
+      document.getElementById('name-nosotros').innerText = nombres.nosotros;
+      document.getElementById('name-ellos').innerText = nombres.ellos;
+
+      document.getElementById('btn-pts-nosotros').innerText = `+ Pts ${nombres.nosotros}`;
+      document.getElementById('btn-pts-ellos').innerText = `+ Pts ${nombres.ellos}`;
+
+      document.getElementById('btn-cap-nosotros').innerText = `+ Capicúa ${nombres.nosotros} (30)`;
+      document.getElementById('btn-cap-ellos').innerText = `+ Capicúa ${nombres.ellos} (30)`;
+
+      document.getElementById('btn-pas-nosotros').innerText = `+ Paso Igual ${nombres.nosotros} (30)`;
+      document.getElementById('btn-pas-ellos').innerText = `+ Paso Igual ${nombres.ellos} (30)`;
+
+      document.getElementById('btn-cor-nosotros').innerText = `+ Paso Corrido ${nombres.nosotros} (30)`;
+      document.getElementById('btn-cor-ellos').innerText = `+ Paso Corrido ${nombres.ellos} (30)`;
+
+      document.getElementById('btn-cam-nosotros').innerText = `Anotar a ${nombres.nosotros}`;
+      document.getElementById('btn-cam-ellos').innerText = `Anotar a ${nombres.ellos}`;
+
+      document.getElementById('score-nosotros').innerText = puntos.nosotros;
+      document.getElementById('score-ellos').innerText = puntos.ellos;
+
+      document.getElementById('capicua-nosotros').innerText = bonus.nosotros.capicua;
+      document.getElementById('paso-nosotros').innerText = bonus.nosotros.paso;
+      document.getElementById('corrido-nosotros').innerText = bonus.nosotros.corrido;
+
+      document.getElementById('capicua-ellos').innerText = bonus.ellos.capicua;
+      document.getElementById('paso-ellos').innerText = bonus.ellos.paso;
+      document.getElementById('corrido-ellos').innerText = bonus.ellos.corrido;
+    }
+
+    function agregarHistorial(texto) {
+      const lista = document.getElementById('history-list');
+      const li = document.createElement('li');
+      li.innerText = texto;
+      lista.insertBefore(li, lista.firstChild);
+    }
+
+    function sumarPuntos(equipo) {
+      const entrada = prompt(`Ingrese los puntos a sumar para ${nombres[equipo]}:`);
+      const val = parseInt(entrada);
+      if (!isNaN(val) && val > 0) {
+        puntos[equipo] += val;
+        agregarHistorial(`+${val} pts manuales para ${nombres[equipo]}`);
+        actualizarPantalla();
+      }
+    }
+
+    function sumarBonus(equipo, tipo) {
+      puntos[equipo] += 30;
+      bonus[equipo][tipo]++;
+      
+      let nombreBonus = tipo === 'capicua' ? 'Capicúa' : (tipo === 'paso' ? 'Paso Igual' : 'Paso Corrido');
+      agregarHistorial(`+30 pts (${nombreBonus}) para ${nombres[equipo]}`);
+      actualizarPantalla();
+    }
+
+    async function abrirCamara() {
+      const modal = document.getElementById('camera-modal');
+      const video = document.getElementById('video');
+      try {
+        streamCamara = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = streamCamara;
+        modal.style.display = 'flex';
+      } catch (err) {
+        alert('No se pudo acceder a la cámara: ' + err.message);
+      }
+    }
+
+    function cerrarCamara() {
+      if (streamCamara) {
+        streamCamara.getTracks().forEach(track => track.stop());
+      }
+      document.getElementById('camera-modal').style.display = 'none';
+    }
+
+    function capturarYContar(equipo) {
+      cerrarCamara();
+      setTimeout(() => {
+        const entrada = prompt(`Revisa la mesa. ¿Cuántos puntos contó para ${nombres[equipo]}?:`);
+        const val = parseInt(entrada);
+        if (!isNaN(val) && val > 0) {
+          puntos[equipo] += val;
+          agregarHistorial(`+${val} pts (Cámara) para ${nombres[equipo]}`);
+          actualizarPantalla();
+        }
+      }, 300);
+    }
+
+    function reiniciarJuego() {
+      if (confirm('¿Seguro que deseas reiniciar la partida?')) {
+        puntos = { nosotros: 0, ellos: 0 };
+        bonus = {
+          nosotros: { capicua: 0, paso: 0, corrido: 0 },
+          ellos: { capicua: 0, paso: 0, corrido: 0 }
+        };
+        document.getElementById('history-list').innerHTML = '';
+        actualizarPantalla();
+      }
+    }
+  </script>
+</body>
+</html>
