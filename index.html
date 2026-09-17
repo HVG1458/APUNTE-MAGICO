@@ -1,1 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APUNTE-MÁGICO - Dominó Dominicano</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f0f2f5; color: #333; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+    .container { max-width: 500px; width: 100%; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #1a2a3a; font-size: 22px; margin-bottom: 15px; }
+    .scoreboard { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+    .team-card { flex: 1; background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #e9ecef; }
+    .team-title { font-size: 18px; font-weight: bold; color: #1a2a3a; cursor: pointer; }
+    .score { font-size: 42px; font-weight: bold; margin: 10px 0; }
+    .nosotros .score { color: #0d3b66; }
+    .ellos .score { color: #c0392b; }
+    .bonuses { font-size: 12px; color: #6c757d; text-align: left; background: #fff; padding: 8px; border-radius: 6px; }
+    .btn-group { display: flex; flex-direction: column; gap: 8px; }
+    .row { display: flex; gap: 8px; }
+    button { flex: 1; padding: 12px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    .btn-edit { background: #0096c7; color: white; }
+    .btn-add-nos { background: #0d3b66; color: white; }
+    .btn-add-ell { background: #c0392b; color: white; }
+    .btn-bonus { background: #2a9d8f; color: white; }
+    .btn-cam { background: #6a0dad; color: white; }
+    .btn-reset { background: #6c757d; color: white; }
+    
+    /* Modales */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+    .modal-content input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+    
+    /* Teclado rápido de puntos */
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+    .keypad button { background: #e9ecef; color: #333; font-size: 20px; padding: 15px; }
+  </style>
+</head>
+<body>
 
+<div class="container">
+  <h1>Dominó Dominicano</h1>
+  
+  <div class="scoreboard">
+    <div class="team-card nosotros">
+      <div class="team-title" id="nameNosotros" onclick="cambiarNombres()">NOSOTROS</div>
+      <div class="score" id="scoreNosotros">0</div>
+      <div class="bonuses">
+        Capicúa: <span id="capNos">0</span><br>
+        Paso Igual: <span id="pIgualNos">0</span><br>
+        Paso Corrido: <span id="pCorrNos">0</span>
+      </div>
+    </div>
+    <div class="team-card ellos">
+      <div class="team-title" id="nameEllos" onclick="cambiarNombres()">ELLOS</div>
+      <div class="score" id="scoreEllos">0</div>
+      <div class="bonuses">
+        Capicúa: <span id="capEll">0</span><br>
+        Paso Igual: <span id="pIgualEll">0</span><br>
+        Paso Corrido: <span id="pCorrEll">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-edit" onclick="cambiarNombres()">✏️ Cambiar Nombres de Jugadores</button>
+    
+    <div class="row">
+      <button class="btn-add-nos" onclick="abrirPuntos('nosotros')">+ Pts NOSOTROS</button>
+      <button class="btn-add-ell" onclick="abrirPuntos('ellos')">+ Pts ELLOS</button>
+    </div>
+
+    <div class="row">
+      <button class="btn-bonus" onclick="sumarBonus('nosotros', 'capicua')">+ Capicúa Nos. (30)</button>
+      <button class="btn-bonus" onclick="sumarBonus('ellos', 'capicua')">+ Capicúa Ell. (30)</button>
+    </div>
+    
+    <div class="row">
+      <button class="btn-bonus" onclick="sumarBonus('nosotros', 'pasoIgual')">+ Paso Igual Nos. (30)</button>
+      <button class="btn-bonus" onclick="sumarBonus('ellos', 'pasoIgual')">+ Paso Igual Ell. (30)</button>
+    </div>
+
+    <div class="row">
+      <button class="btn-bonus" onclick="sumarBonus('nosotros', 'pasoCorrido')">+ Paso Corrido Nos. (30)</button>
+      <button class="btn-bonus" onclick="sumarBonus('ellos', 'pasoCorrido')">+ Paso Corrido Ell. (30)</button>
+    </div>
+
+    <button class="btn-cam" onclick="abrirCamaraPuntos()">📷 Contar con Cámara</button>
+    <button class="btn-reset" onclick="reiniciarPartida()">Reiniciar Partida</button>
+  </div>
+</div>
+
+<!-- Input invisible para la cámara -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="fotoTomada()">
+
+<!-- Modal Puntos -->
+<div class="modal" id="modalPuntos">
+  <div class="modal-content">
+    <h3 id="modalPuntosTitulo">Sumar Puntos</h3>
+    <input type="number" id="puntosInput" placeholder="Puntos" readonly>
+    <div class="keypad">
+      <button onclick="pressKey('1')">1</button>
+      <button onclick="pressKey('2')">2</button>
+      <button onclick="pressKey('3')">3</button>
+      <button onclick="pressKey('4')">4</button>
+      <button onclick="pressKey('5')">5</button>
+      <button onclick="pressKey('6')">6</button>
+      <button onclick="pressKey('7')">7</button>
+      <button onclick="pressKey('8')">8</button>
+      <button onclick="pressKey('9')">9</button>
+      <button onclick="clearKey()">C</button>
+      <button onclick="pressKey('0')">0</button>
+      <button onclick="confirmarPuntos()">OK</button>
+    </div>
+    <button class="btn-reset" onclick="cerrarModal('modalPuntos')">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  let state = {
+    nosotros: 0, ellos: 0,
+    capNos: 0, pIgualNos: 0, pCorrNos: 0,
+    capEll: 0, pIgualEll: 0, pCorrEll: 0,
+    equipoActual: 'nosotros'
+  };
+
+  function updateUI() {
+    document.getElementById('scoreNosotros').innerText = state.nosotros;
+    document.getElementById('scoreEllos').innerText = state.ellos;
+    document.getElementById('capNos').innerText = state.capNos;
+    document.getElementById('pIgualNos').innerText = state.pIgualNos;
+    document.getElementById('pCorrNos').innerText = state.pCorrNos;
+    document.getElementById('capEll').innerText = state.capEll;
+    document.getElementById('pIgualEll').innerText = state.pIgualEll;
+    document.getElementById('pCorrEll').innerText = state.pCorrEll;
+  }
+
+  function cambiarNombres() {
+    const n1 = prompt("Nombre Pareja 1:", document.getElementById('nameNosotros').innerText);
+    const n2 = prompt("Nombre Pareja 2:", document.getElementById('nameEllos').innerText);
+    if(n1) document.getElementById('nameNosotros').innerText = n1.toUpperCase();
+    if(n2) document.getElementById('nameEllos').innerText = n2.toUpperCase();
+  }
+
+  function sumarBonus(equipo, tipo) {
+    if(equipo === 'nosotros') {
+      if(tipo === 'capicua') state.capNos++;
+      if(tipo === 'pasoIgual') state.pIgualNos++;
+      if(tipo === 'pasoCorrido') state.pCorrNos++;
+      state.nosotros += 30;
+    } else {
+      if(tipo === 'capicua') state.capEll++;
+      if(tipo === 'pasoIgual') state.pIgualEll++;
+      if(tipo === 'pasoCorrido') state.pCorrEll++;
+      state.ellos += 30;
+    }
+    updateUI();
+  }
+
+  function abrirPuntos(equipo) {
+    state.equipoActual = equipo;
+    document.getElementById('modalPuntosTitulo').innerText = "Puntos para " + (equipo === 'nosotros' ? document.getElementById('nameNosotros').innerText : document.getElementById('nameEllos').innerText);
+    document.getElementById('puntosInput').value = '';
+    document.getElementById('modalPuntos').style.display = 'flex';
+  }
+
+  function abrirCamaraPuntos() {
+    document.getElementById('cameraInput').click();
+  }
+
+  function fotoTomada() {
+    // Tras tomar la foto de las fichas, abrimos directamente el teclado numérico rápido
+    abrirPuntos('nosotros');
+  }
+
+  function pressKey(val) {
+    document.getElementById('puntosInput').value += val;
+  }
+
+  function clearKey() {
+    document.getElementById('puntosInput').value = '';
+  }
+
+  function confirmarPuntos() {
+    const pts = parseInt(document.getElementById('puntosInput').value) || 0;
+    if(state.equipoActual === 'nosotros') state.nosotros += pts;
+    else state.ellos += pts;
+    updateUI();
+    cerrarModal('modalPuntos');
+  }
+
+  function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function reiniciarPartida() {
+    if(confirm("¿Reiniciar el marcador a 0?")) {
+      state = { nosotros: 0, ellos: 0, capNos: 0, pIgualNos: 0, pCorrNos: 0, capEll: 0, pIgualEll: 0, pCorrEll: 0, equipoActual: 'nosotros' };
+      updateUI();
+    }
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+</script>
+</body>
+</html>
